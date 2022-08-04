@@ -68,20 +68,23 @@ def offlineMain(pic):
 
 
 def main():
-    sum=0
+
     if args.input=='video':
         cap = cv2.VideoCapture(args.inputDir+'demo.mp3')
     elif args.input=='camera':
         cap = cv2.VideoCapture(0)
     else:
         raise Exception('Input argument invalid: please input video or camera')
-
+    sum=0
     while True:
+        # 1 detection/stride frames
+        stride=30
         ret,img=cap.read()
         if ret=='False':
             raise Exception('Unable to use camera')
         sum+=1
-        if sum%1==0:
+        if sum%stride==0:
+            sum=0
             if args.approach=='Online_request':
                 onlineMain(img)
             elif args.approach=='Offline_request':
