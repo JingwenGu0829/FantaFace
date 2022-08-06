@@ -1,4 +1,5 @@
 import json
+from operator import ge
 import cv2
 from time import time
 from urllib import request,error
@@ -23,7 +24,7 @@ def send_request(url, key, secret, frame,params,test_with_img=False):
     if test_with_img :
         fr = open(test_with_img, 'rb')
     else:
-        #To do: Find a method to align the format of np-array image and binary image read from open().
+        #To do: Find a method to align the format of np-array image and with that of the binary image read from open().
         #frame.to_bytes() does not work!
         cv2.imwrite('frame.jpg',frame)
         fr = open('frame.jpg', 'rb')
@@ -61,6 +62,10 @@ def decode_result(frame,face_data,gesture_data,show=False):
     """
     This function demonstrates detection results using opencv (specified by the parameter "show"), encode
     all potentially useful attributes into JSON and send it to OSC for drawing animations .
+    Output to the server:
+    Face_data=-1:more than one face;   =0:no face;
+    gesture_data=0: no hand
+    Else: return dictionaries of labels and landmarks.
     """
     color=(255,0,0)
     fontface=cv2.FONT_HERSHEY_COMPLEX
@@ -73,6 +78,7 @@ def decode_result(frame,face_data,gesture_data,show=False):
         l_eye={key:landmark[key] for key in ("left_eye_top","left_eye_bottom","left_eye_left_corner","left_eye_right_corner")}
         r_eye={key:landmark[key] for key in ("right_eye_top","right_eye_bottom","right_eye_left_corner","right_eye_right_corner")}
         lip={key:landmark[key] for key in ("mouth_upper_lip_top","mouth_lower_lip_bottom","mouth_left_corner","mouth_right_corner")}
+        #Not sure which features are useful yet
         l_eye_status=attribs['eyestatus']['left_eye_status']
         r_eye_status=attribs['eyestatus']['right_eye_status']
         mouthstatus=attribs['mouthstatus']
@@ -105,8 +111,9 @@ def decode_result(frame,face_data,gesture_data,show=False):
                    'l_eye_status':l_eye_status,'r_eye_status':r_eye_status,'mouthstatus':mouthstatus,\
                     'emotion':emotion,'eyegaze':attribs['eyegaze']
                     }
-
-        data={'face_data':face_data,'gesture_data':gesture_data}
+    if gesture_data:
+        gesture_data=gesture_data['hands'][0]
+    data={'face_data':face_data,'gesture_data':gesture_data}
     from pythonosc.udp_client import SimpleUDPClient
     from json import dump
     ip = "127.0.0.1"

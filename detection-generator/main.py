@@ -73,13 +73,9 @@ def main():
                     face_dict=0
                 elif face_dict['face_num']>1:
                     face_dict=-1
-                else:
-                    face_dict=face_dict['faces'][0]
                 # show the resulting image with landmarks
                 if len(gesture_dict['hands'])==0:
                     gesture_dict=0
-                else:
-                    gesture_dict=gesture_dict['hands'][0]
                     
                 json_data=decode_result(frame,face_dict,gesture_dict)
                 print("time used :",time.time()-t1)
