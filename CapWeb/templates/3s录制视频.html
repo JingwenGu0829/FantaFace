@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <button id="begin" onclick="getUserMediaStream({ audio: true, video: { facingMode: 'user' } })">开始</button>
+    <button id="record" disabled onclick="toggleRecording()">录制</button>
+    <button id="play" disabled onclick="play()">播放</button>
+    <button id="download" disabled onclick="bufferToDataUrl()"></button>
+    <button id="reStart" disabled>重新开始</button>
+    <button id="upload">上传</button>
+    <video id="gumVideo" width="500" height="500" autoplay='autoplay' muted></video>
+    <video id="gumVideo2" width="500" height="500" autoplay='autoplay' muted></video>
+    <canvas id="myCanvas"></canvas>
+    
+</body>
+</html>
