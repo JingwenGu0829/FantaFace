@@ -60,7 +60,7 @@ def main():
                 else:
                     gesture_dict=gesture_dict['hands'][0]
                     
-                json_data=decode_result(frame,face_dict,gesture_dict)
+                decode_result(frame,face_dict,gesture_dict)
                 print("time used :",time.time()-t1)
 
                 #Do not use this branch!!!!
