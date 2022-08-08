@@ -61,7 +61,7 @@ def send_request(url, key, secret, frame,params):
 
 
         
-def parse_result(frame,face_data,gesture_data,show_img=False):
+def handle_result(frame,face_data,gesture_data,show_img=False):
 
     """
     This function demonstrates detection results using opencv (specified by the parameter "show"), encode

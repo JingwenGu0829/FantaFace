@@ -1,10 +1,12 @@
-from utils import send_request,parse_result,return_queue
+from utils import send_request,handle_result,return_queue
 import cv2,queue
+from io import BytesIO
+from PIL import Image
 from option import args 
 from os import remove
 import time,threading
 from multiprocessing import Process
-
+import win32clipboard 
 def onlineDetec(frame):
     """
     @ param test_with_img: Image file path. If not empty, this method will will only detect this image instead of frame.
@@ -39,22 +41,31 @@ def offlineDetec(frame):
     # To be implemented
     raise NotImplementedError('别骂了，我们没时间训模型')
 
-def process_image(frame,copy_to_clipboard=True):
+def process_image(frame,copy_to_clipboard=False,show_img=False):
     """
     This should be called by the web backend with an np-array-like image to detect features.
     The function should be called with try-except because face++ sometimes denies the request
     and returns {"error_message":"CONCURRENCY_LIMIT_EXCEEDED"}
     @param img(numpy.array): image from backend
-    @print_time(boolean): print the time consumed by the whole detection pipeline in the terminal.
+    @param show_img(bool): True to show the detection results using cv2.imshow()
     """
     cv2.imwrite('frame.jpg',frame)
     face_dict,gesture_dict=onlineDetec(frame)
     remove('frame.jpg')    
-    parse_result(frame,face_dict,gesture_dict,args.show_img)
+    handle_result(frame,face_dict,gesture_dict,show_img)
     #Use the same image name in processing
     if copy_to_clipboard:
-        animation=cv2.imread('animation.jpg')
-        
+        path='detection-generator/animation.jpg'
+        image=Image.open(path)
+        output = BytesIO()
+        image.convert('RGB').save(output, 'BMP')
+        data = output.getvalue()[14:]
+        output.close()
+        win32clipboard.OpenClipboard()
+        win32clipboard.EmptyClipboard()
+        win32clipboard.SetClipboardData(win32clipboard.CF_DIB, data)
+        win32clipboard.CloseClipboard()
+        pass
 def process_video(frame,dynam_wallpaper=False):
     pass
 
@@ -89,7 +100,7 @@ def main():
                 cv2.imwrite('frame.jpg',img=frame)
                 face_dict,gesture_dict=onlineDetec(frame)
                 remove('frame.jpg')       
-                parse_result(frame,face_dict,gesture_dict,show_img=args.show_img)
+                handle_result(frame,face_dict,gesture_dict,show_img=args.show_img)
                 print("time used :",time.time()-t1)
 
 
@@ -108,7 +119,7 @@ def main():
                     gesture_dict=0
                     #debugging gesture detection
                    
-                parse_result(frame,face_dict,gesture_dict,show_img=args.show_img)
+                handle_result(frame,face_dict,gesture_dict,show_img=args.show_img)
                 print("time used :",time.time()-t1)
 
 
@@ -121,7 +132,7 @@ if __name__ == '__main__':
     retry=10
     for i in range(iters):
         t1=time.time()
-        process_image(cv2.imread('test.jpg'))
+        process_image(cv2.imread('detection-generator/test.jpg'),copy_to_clipboard=True,show_img=True)
         time_used=time.time()-t1
         print("time_used:",time_used)
         total_time+=time_used
