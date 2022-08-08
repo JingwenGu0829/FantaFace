@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+{% load static %} 
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <!-- Favicon -->
+  <!-- <link rel="shortcut icon" href="./assets/images/favicon.ico" type="image/x-icon" /> -->
+  
+  <!-- Libs CSS -->
+  
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="/static/css/module.css" />
+  <link rel="stylesheet" href="/static/css/libs.bundle.css" />
+  <link rel="stylesheet" href="/static/css/index.bundle.css" />
+    
+  <!-- Title -->
+  <title>欢迎!</title>
+</head>
+
+<body>
+  
+  <div class="row justify-content-center g-1">
+    <div class="col-auto">
+      <button id="begin" class="btn btn-outline-primary rounded-pill mb-1" onclick="getUserMediaStream({ audio: true, video: { facingMode: 'user' } })">开始</button>
+    </div>
+    <div class="col-auto">
+      <button id="record" class="btn btn-outline-primary rounded-pill mb-1" disabled onclick="toggleRecording()">录制</button>
+    </div>
+    <div class="col-auto">
+      <button id="reStart" class="btn btn-outline-primary rounded-pill mb-1" disabled onclick="restartRecord()">重新开始</button>
+    </div>
+    <div class="col-auto"> 
+      <button id="play" class="btn btn-outline-primary rounded-pill mb-1" disabled onclick="play()">播放</button>
+    </div>
+    <div class="col-auto">
+      <button id="download" class="btn btn-outline-primary rounded-pill mb-1" disabled onclick="bufferToDataUrl()">下载</button>
+    </div>
+    <div class="col-auto">
+      <button id="post" class="btn btn-outline-primary rounded-pill mb-1" onclick="post()">上传</button>
+    </div>
+  </div>
+
+
+  
+ <div class="video">   
+  <video  id="gumVideo" width="500" height="500" autoplay='autoplay' muted></video>
+  <video id="gumVideo2" width="500" height="500" autoplay='autoplay' muted></video>
+
+</div> 
+  
+  
+  
+</body>
+
+
+
+
+
+  <!-- javascript -->
+  <script src="/static/js/modules/module.js"></script>
+</html>

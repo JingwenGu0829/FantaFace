@@ -1,0 +1,20 @@
+
+#gumVideo {
+    transform: rotateY(180deg);
+}
+
+#video{
+   margin: 10 10 10 10 px;
+   text-align:center;
+   height:fit-content;
+   margin: 0 auto;
+
+}
+
+#butt{
+    display: flex;
+	justify-content: center;
+	align-items: center;
+    text-align:center;
+    margin: 0 auto;
+}
