@@ -1,7 +1,3 @@
-import Prism from 'prismjs';
-
-// plugins
-import 'prismjs/plugins/unescaped-markup/prism-unescaped-markup';
-import 'prismjs/plugins/normalize-whitespace/prism-normalize-whitespace';
-import 'prismjs/plugins/toolbar/prism-toolbar';
-import 'prismjs/plugins/copy-to-clipboard/prism-copy-to-clipboard';
+version https://git-lfs.github.com/spec/v1
+oid sha256:6c76b1152e7944d68ed0c27ffb833aecc9de0d038715e2e943aa08f3237ef391
+size 296

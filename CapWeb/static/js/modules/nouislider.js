@@ -1,23 +1,3 @@
-import noUiSlider from 'nouislider';
-
-const elements = document.querySelectorAll('[data-range]');
-
-elements.forEach(function (element) {
-    const options = JSON.parse(element.dataset.range);
-    const selectionMin = document.getElementById('range-min');
-    const selectionMax = document.getElementById('range-max');
-
-    noUiSlider.create(element, options);
-
-    element.noUiSlider.on('update', function (values, handle) {
-        if (handle) {
-            selectionMax.innerHTML = values[handle];
-        } else {
-            selectionMin.innerHTML = values[handle];
-        }
-    });
-});
-
-
-
-
+version https://git-lfs.github.com/spec/v1
+oid sha256:ac29f52c4f7a308f1261f294e60ff839610b61ebd7fba66741982ab73fa692d4
+size 596

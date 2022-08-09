@@ -1,7 +1,3 @@
-import { Tooltip } from 'bootstrap';
-
-const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-
-tooltips.forEach((tooltip) => {
-    new Tooltip(tooltip);
-});
+version https://git-lfs.github.com/spec/v1
+oid sha256:537d5c1a96a144c619584b787e2bfa2495c0d01247106d60bc6bccaf90286979
+size 174

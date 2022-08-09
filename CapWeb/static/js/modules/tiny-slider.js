@@ -1,15 +1,3 @@
-import { tns } from 'tiny-slider/src/tiny-slider';
-
-const carousel = document.querySelectorAll('[data-carousel]');
-
-carousel.forEach(function (element) {
-    const settings = JSON.parse(element.dataset.carousel);
-
-    settings.container = element;
-    settings.controlsText = [
-        '<i class="bi bi-arrow-left"></i>',
-        '<i class="bi bi-arrow-right"></i>'
-    ];
-
-    tns(settings);
-});
+version https://git-lfs.github.com/spec/v1
+oid sha256:73d9281f024a32e87247a4229e8b7232eb3c13176b6d4145962c14c7980ab69f
+size 396

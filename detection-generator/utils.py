@@ -131,16 +131,17 @@ def handle_result(frame,face_data,gesture_data,result_index=None,show_img=False)
         #         x,y=value['x'],value['y']
         #         cv2.circle(frame,center=(x,y),radius=0,color=color,thickness=8)
         if face_data:
-        #     for point in landmark.values():
-        #         x,y=point['x'],point['y']
-        #         cv2.circle(frame,center=(x,y),radius=0,color=color,thickness=4)
+            for point in landmark.values():
+                cv2.circle(frame,center=(point['x'],point['y']),radius=0,color=color,thickness=5)
            
             #draw features
             cv2.rectangle(frame,(x,y),(x+w,y+h),thickness=2,color=color)
-            cv2.putText(frame,text=emotion,org=(x+w,int(y+h/2)),fontScale=1,color=color,fontFace=fontface)
+            cv2.putText(frame,text=emotion,org=(x,int(y+h/2)),fontScale=1,color=color,fontFace=fontface)
             cv2.putText(frame,l_eyestatus,tuple(l_eye['left_eye_top'].values()),fontScale=0.6,color=color,fontFace=fontface)
-            cv2.putText(frame,r_eyestatus,tuple(r_eye['right_eye_top'].values()),fontScale=0.6,color=color,fontFace=fontface)
-            cv2.putText(frame,mouthstatus,tuple(lip['mouth_lower_lip_bottom'].values()),fontScale=0.6,color=color,fontFace=fontface)
+            # cv2.putText(frame,r_eyestatus,tuple(r_eye['right_eye_top'].values()),fontScale=0.6,color=color,fontFace=fontface)
+            mouth_loc=list(lip['mouth_lower_lip_bottom'].values())
+            cv2.putText(frame,mouthstatus,(mouth_loc[0],mouth_loc[1]+20),fontScale=0.6,color=color,fontFace=fontface)
+
             face_data={'l_eye':l_eye,'r_eye':r_eye,'lip':lip,\
                 'l_eye_status':l_eye_status,'r_eye_status':r_eye_status,'mouthstatus':mouthstatus,\
                     'emotion':emotion,'eyegaze':attribs['eyegaze']

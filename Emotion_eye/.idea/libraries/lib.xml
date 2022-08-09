@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="lib">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/windows-amd64/lib/core.jar!/" />
+      <root url="jar://$PROJECT_DIR$/windows-amd64/lib/jogl-all.jar!/" />
+      <root url="jar://$PROJECT_DIR$/windows-amd64/lib/gluegen-rt.jar!/" />
+      <root url="jar://$PROJECT_DIR$/windows-amd64/lib/Emotion_eye.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

@@ -1,12 +1,13 @@
+import os
 from utils import send_request,handle_result,return_queue
 import cv2,queue
 from io import BytesIO
 from PIL import Image
 from option import args 
-from os import remove
+import os
 import time,threading
 from multiprocessing import Process
-import win32clipboard 
+import win32clipboard,win32api,win32con
 def onlineDetec(frame):
     """
     @ param test_with_img: Image file path. If not empty, this method will will only detect this image instead of frame.
@@ -40,8 +41,9 @@ def onlineDetec(frame):
 def offlineDetec(frame):
     # To be implemented
     raise NotImplementedError('别骂了，我们没时间训模型')
-
-def process_image(frame,copy_to_clipboard=False,show_img=False):
+def dynam_wallpaper():
+    pass
+def process_image(frame,index=None,copy_to_clipboard=False,show_img=False,dynam_wallpaper=False):
     """
     This should be called by the web backend with an np-array-like image to detect features.
     The function should be called with try-except because face++ sometimes denies the request
@@ -53,11 +55,11 @@ def process_image(frame,copy_to_clipboard=False,show_img=False):
     
     cv2.imwrite('frame.jpg',frame)
     face_dict,gesture_dict=onlineDetec(frame)
-    remove('frame.jpg')    
-    handle_result(frame,face_dict,gesture_dict,show_img)
+    os.remove('frame.jpg')    
+    handle_result(frame,face_dict,gesture_dict,index,show_img)
     #Use the same image name in processing
     if copy_to_clipboard:
-        path='detection-generator/animation.jpg'
+        path=f'Emotion_eye/{index}.jpg'
         image=Image.open(path)
         output = BytesIO()
         image.convert('RGB').save(output, 'BMP')
@@ -67,6 +69,12 @@ def process_image(frame,copy_to_clipboard=False,show_img=False):
         win32clipboard.EmptyClipboard()
         win32clipboard.SetClipboardData(win32clipboard.CF_DIB, data)
         win32clipboard.CloseClipboard()
+        print("successfully copied to clipboard")
+    if dynam_wallpaper:
+        path=f'Emotion_eye/{index}.jpg'
+        image=Image.open(path)
+        dynam_wallpaper()
+
 
 def process_video(path=None,dynam_wallpaper=False,show_img=False):   
     result_index=1
@@ -96,7 +104,7 @@ def process_video(path=None,dynam_wallpaper=False,show_img=False):
                 t1=time.time()
                 cv2.imwrite('frame.jpg',img=frame)
                 face_dict,gesture_dict=onlineDetec(frame)
-                remove('frame.jpg')       
+                os.remove('frame.jpg')       
                 handle_result(frame,face_dict,gesture_dict,result_index,show_img)
                 result_index+=1
                 print("time used :",time.time()-t1)
@@ -116,23 +124,23 @@ def process_video(path=None,dynam_wallpaper=False,show_img=False):
                 if len(gesture_dict['hands'])==0:
                     gesture_dict=0
                     #debugging gesture detection
-                   
+                #draw and save picture
                 handle_result(frame,face_dict,gesture_dict,result_index=result_index,show_img=show_img)
                 result_index+=1
                 print("time used :",time.time()-t1)
-
+                
 
 if __name__ == '__main__':
-    process_video(path=r'C:\Users\19051\Documents\WeChat Files\wxid_lzx03zypbnw212\FileStorage\Video\2022-08\9f7d834fdd725540c10a5b00f1d86d42.mp4',show_img=False)
+    # process_video(path=r'C:\Users\19051\Documents\WeChat Files\wxid_lzx03zypbnw212\FileStorage\Video\2022-08\9f7d834fdd725540c10a5b00f1d86d42.mp4',show_img=False)
     # test latency
-    # total_time=0
-    # iters=15
-    # retry=10
-    # for i in range(iters):
-    #     t1=time.time()
-    #     process_image(cv2.imread('detection-generator/test.jpg'),copy_to_clipboard=True,show_img=False)
-    #     time_used=time.time()-t1
-    #     print("time_used:",time_used)
-    #     total_time+=time_used
-    #     time.sleep(0.8)
-    # print("-----------------------------\n",f"Average time across {iters} detections:  ",total_time/iters,' sec')
+    total_time=0
+    iters=15
+    retry=10
+    for i in range(iters):
+        t1=time.time()
+        process_image(cv2.imread('detection-generator/test.jpg'),copy_to_clipboard=False,show_img=True)
+        time_used=time.time()-t1
+        print("time_used:",time_used)
+        total_time+=time_used
+        time.sleep(0.8)
+    print("-----------------------------\n",f"Average time across {iters} detections:  ",total_time/iters,' sec')
