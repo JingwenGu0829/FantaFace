@@ -2,7 +2,7 @@ import json
 from operator import ge
 from option import args
 import os,queue
-import cv2
+import cv2,math
 from time import time
 from urllib import request,error
 #store return values from send_request()
@@ -12,6 +12,7 @@ def send_request(url, key, secret, frame,params):
     Send request to Face++ server and return detection results.
 
     """
+    print("send request")
     boundary = '----------%s' % hex(int(time() * 1000))
     data = []
     data.append('--%s' % boundary)
@@ -61,7 +62,7 @@ def send_request(url, key, secret, frame,params):
 
 
         
-def handle_result(frame,face_data,gesture_data,show_img=False):
+def handle_result(frame,face_data,gesture_data,result_index=None,show_img=False):
 
     """
     This function demonstrates detection results using opencv (specified by the parameter "show"), encode
@@ -94,8 +95,29 @@ def handle_result(frame,face_data,gesture_data,show_img=False):
             #Not sure which features are useful yet
             l_eye_status=attribs['eyestatus']['left_eye_status']
             r_eye_status=attribs['eyestatus']['right_eye_status']
-            mouthstatus=attribs['mouthstatus']
             emotion=attribs['emotion']
+            mouthstatus=attribs['mouthstatus']
+            eye_gaze=[attribs['eyegaze']['left_eye_gaze']['vector_x_component'],attribs['eyegaze']['left_eye_gaze']['vector_y_component']]
+            eye_gaze=math.atan2(-eye_gaze[1],eye_gaze[0])
+            mouthstatus.pop('surgical_mask_or_respirator');mouthstatus.pop('other_occlusion')
+            r_eye_status.pop('dark_glasses');r_eye_status.pop('occlusion')
+            l_eye_status.pop('dark_glasses');l_eye_status.pop('occlusion')
+
+             #y,x,w,h is the correct order    
+            y,x,w,h=list(face_data['face_rectangle'].values())
+            #get keys for max values
+            emotion=max(zip(emotion.values(),emotion.keys()))[1]
+            l_eyestatus=max(zip(l_eye_status.values(),l_eye_status.keys()))[1]
+            r_eyestatus=max(zip(r_eye_status.values(),r_eye_status.keys()))[1]
+            if "open" in l_eyestatus:
+                l_eye_status='open'
+            else:
+                l_eye_status='close'
+            if "open" in r_eyestatus:
+                r_eye_status='open'
+            else:
+                r_eye_status='close'
+            mouthstatus=max(zip(mouthstatus.values(),mouthstatus.keys()))[1]
     if gesture_data:
         gesture_data=gesture_data['hands'][0]
     if show_img:
@@ -109,23 +131,17 @@ def handle_result(frame,face_data,gesture_data,show_img=False):
         #         x,y=value['x'],value['y']
         #         cv2.circle(frame,center=(x,y),radius=0,color=color,thickness=8)
         if face_data:
-            for point in landmark.values():
-                x,y=point['x'],point['y']
-                cv2.circle(frame,center=(x,y),radius=0,color=color,thickness=7)
-            #y,x,w,h is the correct order    
-            y,x,w,h=list(face_data['face_rectangle'].values())
-            #get keys for max values
-            emotion=max(zip(emotion.values(),emotion.keys()))[1]
-            l_eyestatus=max(zip(l_eye_status.values(),l_eye_status.keys()))[1]
-            r_eyestatus=max(zip(r_eye_status.values(),r_eye_status.keys()))[1]
-            mouthstatus=max(zip(mouthstatus.values(),mouthstatus.keys()))[1]
+        #     for point in landmark.values():
+        #         x,y=point['x'],point['y']
+        #         cv2.circle(frame,center=(x,y),radius=0,color=color,thickness=4)
+           
             #draw features
             cv2.rectangle(frame,(x,y),(x+w,y+h),thickness=2,color=color)
             cv2.putText(frame,text=emotion,org=(x+w,int(y+h/2)),fontScale=1,color=color,fontFace=fontface)
             cv2.putText(frame,l_eyestatus,tuple(l_eye['left_eye_top'].values()),fontScale=0.6,color=color,fontFace=fontface)
             cv2.putText(frame,r_eyestatus,tuple(r_eye['right_eye_top'].values()),fontScale=0.6,color=color,fontFace=fontface)
             cv2.putText(frame,mouthstatus,tuple(lip['mouth_lower_lip_bottom'].values()),fontScale=0.6,color=color,fontFace=fontface)
-            face_data={'attribs':attribs,'l_eye':l_eye,'r_eye':r_eye,'lip':lip,\
+            face_data={'l_eye':l_eye,'r_eye':r_eye,'lip':lip,\
                 'l_eye_status':l_eye_status,'r_eye_status':r_eye_status,'mouthstatus':mouthstatus,\
                     'emotion':emotion,'eyegaze':attribs['eyegaze']
                     }
@@ -137,7 +153,17 @@ def handle_result(frame,face_data,gesture_data,show_img=False):
         cv2.imshow('寄',frame)
         cv2.waitKey(0)
     data={'face_data':face_data,'gesture_data':gesture_data}
-    data=json.dumps(data)
+
+
+
+    #testing !!!
+    data={"emotion":emotion}
+    if not os.path.exists("./json"):
+        os.mkdir('./json')
+    with open('./json/result'+str(result_index)+'json', "w") as outfile:
+        json.dump(data, outfile)
+
+
     #To do: call jar file and pass data as parameter
 
 

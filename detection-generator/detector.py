@@ -46,9 +46,11 @@ def process_image(frame,copy_to_clipboard=False,show_img=False):
     This should be called by the web backend with an np-array-like image to detect features.
     The function should be called with try-except because face++ sometimes denies the request
     and returns {"error_message":"CONCURRENCY_LIMIT_EXCEEDED"}
-    @param img(numpy.array): image from backend
-    @param show_img(bool): True to show the detection results using cv2.imshow()
+    @param img(numpy.array):        image from backend
+    @param copy_to_clipboard(bool): copy detection-generator/animation.jpg to clipboard
+    @param show_img(bool):          Set to True to show the detection results using cv2.imshow()
     """
+    
     cv2.imwrite('frame.jpg',frame)
     face_dict,gesture_dict=onlineDetec(frame)
     remove('frame.jpg')    
@@ -65,42 +67,38 @@ def process_image(frame,copy_to_clipboard=False,show_img=False):
         win32clipboard.EmptyClipboard()
         win32clipboard.SetClipboardData(win32clipboard.CF_DIB, data)
         win32clipboard.CloseClipboard()
-        pass
-def process_video(frame,dynam_wallpaper=False):
-    pass
 
-def main():   
-    """
-    The main fuction is for testing using your local camera or video
-    """ 
-    print('Main function running------------------')
-    if args.input == 'video':
-        cap = cv2.VideoCapture(args.inputDir + 'demo.mp3')
-    elif args.input == 'camera':
-        cap = cv2.VideoCapture(0)
+def process_video(path=None,dynam_wallpaper=False,show_img=False):   
+    result_index=1
+    print(show_img)
+    if path:
+        cap = cv2.VideoCapture(path)
     else:
-        raise Exception('Input argument invalid: please input video or camera')
-
+        cap = cv2.VideoCapture(0)
 
     #Detect 2 frames per second(excluding the request latency)
-    frame_per_sec=4
+    frame_per_sec=1
     sum = 0
     camera_fps=cap.get(cv2.CAP_PROP_FPS)
     face_dict=gesture_dict=None
     while True:
+        
         ret, frame = cap.read()
         if ret == False:
-            raise Exception('Unable to use camera')
+            print('Unable to read video')
+            break
         sum += 1
-        if sum % (camera_fps/frame_per_sec) == 0:
+        if sum % (camera_fps//frame_per_sec) == 0:
             sum = 0
-
+            print('sleep for 0.3s')
+            time.sleep(0.3)
             if args.approach == 'Online_request':
                 t1=time.time()
                 cv2.imwrite('frame.jpg',img=frame)
                 face_dict,gesture_dict=onlineDetec(frame)
                 remove('frame.jpg')       
-                handle_result(frame,face_dict,gesture_dict,show_img=args.show_img)
+                handle_result(frame,face_dict,gesture_dict,result_index,show_img)
+                result_index+=1
                 print("time used :",time.time()-t1)
 
 
@@ -119,22 +117,22 @@ def main():
                     gesture_dict=0
                     #debugging gesture detection
                    
-                handle_result(frame,face_dict,gesture_dict,show_img=args.show_img)
+                handle_result(frame,face_dict,gesture_dict,result_index=result_index,show_img=show_img)
+                result_index+=1
                 print("time used :",time.time()-t1)
 
 
 if __name__ == '__main__':
-    # main()
-
+    process_video(path=r'C:\Users\19051\Documents\WeChat Files\wxid_lzx03zypbnw212\FileStorage\Video\2022-08\9f7d834fdd725540c10a5b00f1d86d42.mp4',show_img=False)
     # test latency
-    total_time=0
-    iters=15
-    retry=10
-    for i in range(iters):
-        t1=time.time()
-        process_image(cv2.imread('detection-generator/test.jpg'),copy_to_clipboard=True,show_img=True)
-        time_used=time.time()-t1
-        print("time_used:",time_used)
-        total_time+=time_used
-        time.sleep(0.8)
-    print("-----------------------------\n",f"Average time across {iters} detections:  ",total_time/iters,' sec')
+    # total_time=0
+    # iters=15
+    # retry=10
+    # for i in range(iters):
+    #     t1=time.time()
+    #     process_image(cv2.imread('detection-generator/test.jpg'),copy_to_clipboard=True,show_img=False)
+    #     time_used=time.time()-t1
+    #     print("time_used:",time_used)
+    #     total_time+=time_used
+    #     time.sleep(0.8)
+    # print("-----------------------------\n",f"Average time across {iters} detections:  ",total_time/iters,' sec')
