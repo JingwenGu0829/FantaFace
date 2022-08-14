@@ -76,60 +76,59 @@ def handle_result(frame,face_data,gesture_data,result_index=None,show_img=False)
         face_data=0
     elif face_data['face_num']>1:
         face_data=-1
+    #Extract and simplify face data structure if not empty.
     else:
         face_data=face_data['faces'][0]
+        attribs=face_data['attributes']
+        landmark=face_data['landmark']
+        #Both x and y for one value in l_eye
+        #Extract useful features from returned landmarks and labels, as specified by tuples of keys ()
+        l_eye={key:landmark[key] for key in ("left_eye_top","left_eye_bottom","left_eye_left_corner","left_eye_right_corner")}
+        r_eye={key:landmark[key] for key in ("right_eye_top","right_eye_bottom","right_eye_left_corner","right_eye_right_corner")}
+        lip={key:landmark[key] for key in ("mouth_upper_lip_top","mouth_lower_lip_bottom","mouth_left_corner","mouth_right_corner")}
+        #Not sure which features are useful yet
+        l_eye_status=attribs['eyestatus']['left_eye_status']
+        r_eye_status=attribs['eyestatus']['right_eye_status']
+        emotion=attribs['emotion']
+        mouthstatus=attribs['mouthstatus']
+        eye_gaze=[attribs['eyegaze']['left_eye_gaze']['vector_x_component'],attribs['eyegaze']['left_eye_gaze']['vector_y_component']]
+        eye_gaze=math.atan2(-eye_gaze[1],eye_gaze[0])
+        mouthstatus.pop('surgical_mask_or_respirator');mouthstatus.pop('other_occlusion')
+        r_eye_status.pop('dark_glasses');r_eye_status.pop('occlusion')
+        l_eye_status.pop('dark_glasses');l_eye_status.pop('occlusion')
+
+            #y,x,w,h is the correct order    
+        y,x,w,h=list(face_data['face_rectangle'].values())
+        #get keys for max values
+        emotion=max(zip(emotion.values(),emotion.keys()))[1]
+        l_eyestatus=max(zip(l_eye_status.values(),l_eye_status.keys()))[1]
+        r_eyestatus=max(zip(r_eye_status.values(),r_eye_status.keys()))[1]
+        if "open" in l_eyestatus:
+            l_eye_status='open'
+        else:
+            l_eye_status='close'
+        if "open" in r_eyestatus:
+            r_eye_status='open'
+        else:
+            r_eye_status='close'
+        mouthstatus=max(zip(mouthstatus.values(),mouthstatus.keys()))[1]
     # show the resulting image with landmarks
     if len(gesture_data['hands'])==0:
         gesture_data=0
     else:
         gesture_data=gesture_data['hands'][0]
-
-    if face_data:
-            attribs=face_data['attributes']
-            landmark=face_data['landmark']
-            #Both x and y for one value in l_eye
-            #Extract useful features from returned landmarks and labels, as specified by tuples of keys ()
-            l_eye={key:landmark[key] for key in ("left_eye_top","left_eye_bottom","left_eye_left_corner","left_eye_right_corner")}
-            r_eye={key:landmark[key] for key in ("right_eye_top","right_eye_bottom","right_eye_left_corner","right_eye_right_corner")}
-            lip={key:landmark[key] for key in ("mouth_upper_lip_top","mouth_lower_lip_bottom","mouth_left_corner","mouth_right_corner")}
-            #Not sure which features are useful yet
-            l_eye_status=attribs['eyestatus']['left_eye_status']
-            r_eye_status=attribs['eyestatus']['right_eye_status']
-            emotion=attribs['emotion']
-            mouthstatus=attribs['mouthstatus']
-            eye_gaze=[attribs['eyegaze']['left_eye_gaze']['vector_x_component'],attribs['eyegaze']['left_eye_gaze']['vector_y_component']]
-            eye_gaze=math.atan2(-eye_gaze[1],eye_gaze[0])
-            mouthstatus.pop('surgical_mask_or_respirator');mouthstatus.pop('other_occlusion')
-            r_eye_status.pop('dark_glasses');r_eye_status.pop('occlusion')
-            l_eye_status.pop('dark_glasses');l_eye_status.pop('occlusion')
-
-             #y,x,w,h is the correct order    
-            y,x,w,h=list(face_data['face_rectangle'].values())
-            #get keys for max values
-            emotion=max(zip(emotion.values(),emotion.keys()))[1]
-            l_eyestatus=max(zip(l_eye_status.values(),l_eye_status.keys()))[1]
-            r_eyestatus=max(zip(r_eye_status.values(),r_eye_status.keys()))[1]
-            if "open" in l_eyestatus:
-                l_eye_status='open'
-            else:
-                l_eye_status='close'
-            if "open" in r_eyestatus:
-                r_eye_status='open'
-            else:
-                r_eye_status='close'
-            mouthstatus=max(zip(mouthstatus.values(),mouthstatus.keys()))[1]
-    if gesture_data:
-        gesture_data=gesture_data['hands'][0]
+        gesture_data['gesture']=max(zip(gesture_data['gesture'].values(),gesture_data['gesture'].keys()))[1]
+            
+        
     if show_img:
         color=(255,0,0)
         fontface=cv2.FONT_HERSHEY_COMPLEX
         #face_data:landmark,attributes,face_rectangle,face_token
         
             
-            # for data in (l_eye,r_eye,lip):
-        #     for value in data.values():
-        #         x,y=value['x'],value['y']
-        #         cv2.circle(frame,center=(x,y),radius=0,color=color,thickness=8)
+        for data in (l_eye,r_eye,lip):
+            for value in data.values():
+                cv2.circle(frame,center=(value['x'],value['y']),radius=0,color=color,thickness=8)
         if face_data:
             for point in landmark.values():
                 cv2.circle(frame,center=(point['x'],point['y']),radius=0,color=color,thickness=5)
@@ -151,6 +150,7 @@ def handle_result(frame,face_data,gesture_data,result_index=None,show_img=False)
         if gesture_data:
             y,x,w,h=list(gesture_data['hand_rectangle'].values())
             cv2.rectangle(frame,(x,y),(x+w,y+h),thickness=2,color=color)
+            cv2.putText(frame,gesture_data['gesture'],(x,y),fontScale=0.6,color=color,fontFace=fontface)
         cv2.imshow('寄',frame)
         cv2.waitKey(0)
     data={'face_data':face_data,'gesture_data':gesture_data}

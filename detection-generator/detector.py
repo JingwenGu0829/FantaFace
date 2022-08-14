@@ -1,3 +1,4 @@
+import json
 import os
 from utils import send_request,handle_result,return_queue
 import cv2,queue
@@ -8,7 +9,7 @@ import os
 import time,threading
 from multiprocessing import Process
 import win32clipboard,win32api,win32con
-def onlineDetec(frame):
+def onlineDetect(frame):
     """
     @ param test_with_img: Image file path. If not empty, this method will will only detect this image instead of frame.
     """
@@ -38,7 +39,7 @@ def onlineDetec(frame):
         gesture=data1
     return face,gesture
 
-def offlineDetec(frame):
+def offlineDetect(frame):
     # To be implemented
     raise NotImplementedError('别骂了，我们没时间训模型')
 def dynam_wallpaper():
@@ -51,12 +52,22 @@ def process_image(frame,index=None,copy_to_clipboard=False,show_img=False,dynam_
     @param img(numpy.array):        image from backend
     @param copy_to_clipboard(bool): copy detection-generator/animation.jpg to clipboard
     @param show_img(bool):          Set to True to show the detection results using cv2.imshow()
+    @param dynam_wallpaper          Set to True to show the generated picture as wallpaper 
     """
-    
+    #delete json data from last run
+    json_path="./json"
+    json_files=os.listdir(json_path)
+    if len(json_files)>0:
+        for file in json_files:
+            os.remove(os.path.join(json_path,file))
+    for index,dim in enumerate(frame.shape):
+        if dim>4096:
+
+            frame=cv2.resize(frame,dsize=(-1,4096))
     cv2.imwrite('frame.jpg',frame)
-    face_dict,gesture_dict=onlineDetec(frame)
+    face_dict,gesture_dict=onlineDetect(frame)
     os.remove('frame.jpg')    
-    handle_result(frame,face_dict,gesture_dict,index,show_img)
+    handle_result(frame,face_dict,gesture_dict,show_img=show_img,result_index=1)
     #Use the same image name in processing
     if copy_to_clipboard:
         path=f'Emotion_eye/{index}.jpg'
@@ -77,6 +88,15 @@ def process_image(frame,index=None,copy_to_clipboard=False,show_img=False,dynam_
 
 
 def process_video(path=None,dynam_wallpaper=False,show_img=False):   
+    #delete json data from last run
+    json_path="./json"
+    json_files=os.listdir(json_path)
+    if len(json_files)>0:
+        for file in json_files:
+            os.remove(os.path.join(json_path,file))
+
+
+        
     result_index=1
     print(show_img)
     if path:
@@ -103,7 +123,7 @@ def process_video(path=None,dynam_wallpaper=False,show_img=False):
             if args.approach == 'Online_request':
                 t1=time.time()
                 cv2.imwrite('frame.jpg',img=frame)
-                face_dict,gesture_dict=onlineDetec(frame)
+                face_dict,gesture_dict=onlineDetect(frame)
                 os.remove('frame.jpg')       
                 handle_result(frame,face_dict,gesture_dict,result_index,show_img)
                 result_index+=1
@@ -113,8 +133,8 @@ def process_video(path=None,dynam_wallpaper=False,show_img=False):
                 #Do not use this branch!!!!
             elif args.approach == 'Offline_request':
                 t1=time.time()
-                face_res,gesture=offlineDetec(frame)
-                face_dict,gesture_dict=onlineDetec(frame)
+                face_res,gesture=offlineDetect(frame)
+                face_dict,gesture_dict=onlineDetect(frame)
                 
                 if face_dict['face_num']==0:
                     face_dict=0
@@ -131,16 +151,19 @@ def process_video(path=None,dynam_wallpaper=False,show_img=False):
                 
 
 if __name__ == '__main__':
+    # print(os.getcwd())
     # process_video(path=r'C:\Users\19051\Documents\WeChat Files\wxid_lzx03zypbnw212\FileStorage\Video\2022-08\9f7d834fdd725540c10a5b00f1d86d42.mp4',show_img=False)
-    # test latency
-    total_time=0
-    iters=15
-    retry=10
-    for i in range(iters):
-        t1=time.time()
-        process_image(cv2.imread('detection-generator/test.jpg'),copy_to_clipboard=False,show_img=True)
-        time_used=time.time()-t1
-        print("time_used:",time_used)
-        total_time+=time_used
-        time.sleep(0.8)
-    print("-----------------------------\n",f"Average time across {iters} detections:  ",total_time/iters,' sec')
+    process_image(cv2.imread("detection-generator/test.jpg"),show_img=True)
+
+    # # # test latency
+    # # total_time=0
+    # # iters=15
+    # # retry=10
+    # # for i in range(iters):
+    # #     t1=time.time()
+    # #     process_image(cv2.imread('detection-generator/test.jpg'),copy_to_clipboard=False,show_img=True)
+    # #     time_used=time.time()-t1
+    # #     print("time_used:",time_used)
+    # #     total_time+=time_used
+    # #     time.sleep(0.8)
+    # # print("-----------------------------\n",f"Average time across {iters} detections:  ",total_time/iters,' sec')
