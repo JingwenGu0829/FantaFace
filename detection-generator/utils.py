@@ -1,13 +1,12 @@
 import json
 from operator import ge
 from option import args
-import os,queue
+import os
 import cv2,math
 from time import time
 from urllib import request,error
-#store return values from send_request()
-return_queue=queue.Queue()
-def send_request(url, key, secret, frame,params):
+
+def send_request(url, key, secret, frame,params,return_dict=None):
     """
     Send request to Face++ server and return detection results.
 
@@ -55,8 +54,8 @@ def send_request(url, key, secret, frame,params):
         # if you want to load as json, you should decode first,
         content = qrcont.decode('utf-8')
         content=json.loads(content)
-        return_queue.put(content)
-
+        key= "gesture" if 'gesture' in url else "face"
+        return_dict[key]=content
     except error.HTTPError as e:
         print(e.read().decode('utf-8'))
 
@@ -126,9 +125,9 @@ def handle_result(frame,face_data,gesture_data,result_index=None,show_img=False)
         #face_data:landmark,attributes,face_rectangle,face_token
         
             
-        for data in (l_eye,r_eye,lip):
-            for value in data.values():
-                cv2.circle(frame,center=(value['x'],value['y']),radius=0,color=color,thickness=8)
+        # for data in (l_eye,r_eye,lip):
+        #     for value in data.values():
+        #         cv2.circle(frame,center=(value['x'],value['y']),radius=0,color=color,thickness=8)
         if face_data:
             for point in landmark.values():
                 cv2.circle(frame,center=(point['x'],point['y']),radius=0,color=color,thickness=5)
@@ -169,3 +168,5 @@ def handle_result(frame,face_data,gesture_data,result_index=None,show_img=False)
 
 
 
+def dynam_wallpaper():
+    pass

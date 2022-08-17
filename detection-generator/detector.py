@@ -1,6 +1,6 @@
 import json
 import os
-from utils import send_request,handle_result,return_queue
+from utils import send_request,handle_result,dynam_wallpaper
 import cv2,queue
 from io import BytesIO
 from PIL import Image
@@ -13,37 +13,31 @@ def onlineDetect(frame):
     """
     @ param test_with_img: Image file path. If not empty, this method will will only detect this image instead of frame.
     """
+    return_dict={}
     face_params=[("return_landmark","2"),('return_attributes',\
     "headpose,eyestatus,emotion,mouthstatus,eyegaze")]
     gesture_params=[("return_gestrue","1")]
     #use multi-threading when sending requests
     t1=threading.Thread(target=send_request,args=['https://api-cn.faceplusplus.com/facepp/v3/detect',
                         '5HpZxtRruayZt2kF_80S-CsCxkZ_vZPX',
-                        'YJJIsdx5ROChxAYsP2bCmhskAxQC5ekz',frame,face_params])  
+                        'YJJIsdx5ROChxAYsP2bCmhskAxQC5ekz',frame,face_params,return_dict])  
     t2=threading.Thread(target=send_request,args=['https://api-cn.faceplusplus.com/humanbodypp/v1/gesture',
                         'AKthm2U503hXINwtzjQ68uRj_MeLnbae',\
-                        'J1Q2D9pB44I6HdzdcwTnLUjC4qz2MEgT',frame,gesture_params])
+                        'J1Q2D9pB44I6HdzdcwTnLUjC4qz2MEgT',frame,gesture_params,return_dict])
     t1.start()
     t2.start()
     t1.join()
     t2.join()
-
-    #this return order changes from time to time,probably because the functions run and put values in queue simultaneously
-    data1=return_queue.get()
-    data2=return_queue.get()
-    if 'faces' in data1.keys():
-        face=data1
-        gesture=data2
-    else:
-        face=data2
-        gesture=data1
+    try:
+        face=return_dict['face'];gesture=return_dict['gesture']
+    except KeyError:
+        print(f"face not detected:{'face' not in return_dict.keys()}")
+        print(f"gesture not detected: {'gesture' not in return_dict.keys()}")
     return face,gesture
-
 def offlineDetect(frame):
     # To be implemented
     raise NotImplementedError('别骂了，我们没时间训模型')
-def dynam_wallpaper():
-    pass
+
 def process_image(frame,index=None,copy_to_clipboard=False,show_img=False,dynam_wallpaper=False):
     """
     This should be called by the web backend with an np-array-like image to detect features.
@@ -60,10 +54,26 @@ def process_image(frame,index=None,copy_to_clipboard=False,show_img=False,dynam_
     if len(json_files)>0:
         for file in json_files:
             os.remove(os.path.join(json_path,file))
-    for index,dim in enumerate(frame.shape):
-        if dim>4096:
 
-            frame=cv2.resize(frame,dsize=(-1,4096))
+#test resize function
+    # print(f"Image shape before resizing:{frame.shape}")
+    bounds=[300,1280]
+    for index,dim in enumerate(frame.shape[:2]):
+        if dim>1280:
+            shape=[0,0]
+            #OpenCV resizes image as shape=(width,height)!!!
+            #So I switched the indices in shape[]
+            shape[1-index]=1280 
+            shape[index]=frame.shape[1-index]
+            frame=cv2.resize(frame,dsize=tuple(shape))
+        if dim<300:
+            shape=[0,0]
+            shape[1-index]=300
+            shape[index]=frame.shape[1-index]
+            frame=cv2.resize(frame,dsize=tuple(shape)) 
+#test resize
+    # print(f"Image shape before resizing:{frame.shape}")
+    
     cv2.imwrite('frame.jpg',frame)
     face_dict,gesture_dict=onlineDetect(frame)
     os.remove('frame.jpg')    
@@ -152,7 +162,7 @@ def process_video(path=None,dynam_wallpaper=False,show_img=False):
 
 if __name__ == '__main__':
     # print(os.getcwd())
-    # process_video(path=r'C:\Users\19051\Documents\WeChat Files\wxid_lzx03zypbnw212\FileStorage\Video\2022-08\9f7d834fdd725540c10a5b00f1d86d42.mp4',show_img=False)
+    # process_video(show_img=True)
     process_image(cv2.imread("detection-generator/test.jpg"),show_img=True)
 
     # # # test latency
