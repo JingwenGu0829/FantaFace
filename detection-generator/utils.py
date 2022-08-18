@@ -168,5 +168,6 @@ def handle_result(frame,face_data,gesture_data,result_index=None,show_img=False)
 
 
 
-def dynam_wallpaper():
+def show_wallpaper():
+    
     pass

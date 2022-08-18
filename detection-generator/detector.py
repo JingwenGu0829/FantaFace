@@ -1,6 +1,6 @@
 import json
 import os
-from utils import send_request,handle_result,dynam_wallpaper
+from utils import send_request,handle_result,show_wallpaper
 import cv2,queue
 from io import BytesIO
 from PIL import Image
@@ -55,9 +55,8 @@ def process_image(frame,index=None,copy_to_clipboard=False,show_img=False,dynam_
         for file in json_files:
             os.remove(os.path.join(json_path,file))
 
-#test resize function
+#debug resize function 
     # print(f"Image shape before resizing:{frame.shape}")
-    bounds=[300,1280]
     for index,dim in enumerate(frame.shape[:2]):
         if dim>1280:
             shape=[0,0]
@@ -71,9 +70,9 @@ def process_image(frame,index=None,copy_to_clipboard=False,show_img=False,dynam_
             shape[1-index]=300
             shape[index]=frame.shape[1-index]
             frame=cv2.resize(frame,dsize=tuple(shape)) 
-#test resize
+#debug resize
     # print(f"Image shape before resizing:{frame.shape}")
-    
+
     cv2.imwrite('frame.jpg',frame)
     face_dict,gesture_dict=onlineDetect(frame)
     os.remove('frame.jpg')    
@@ -94,7 +93,7 @@ def process_image(frame,index=None,copy_to_clipboard=False,show_img=False,dynam_
     if dynam_wallpaper:
         path=f'Emotion_eye/{index}.jpg'
         image=Image.open(path)
-        dynam_wallpaper()
+        show_wallpaper()
 
 
 def process_video(path=None,dynam_wallpaper=False,show_img=False):   
