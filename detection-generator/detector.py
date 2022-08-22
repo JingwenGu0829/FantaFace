@@ -1,6 +1,6 @@
 import json
 import os
-from utils import send_request,handle_result,show_wallpaper
+from utils import send_request,handle_result,show_wallpaper,resize_dim_inrange
 import cv2,queue
 from io import BytesIO
 from PIL import Image
@@ -28,12 +28,14 @@ def onlineDetect(frame):
     t2.start()
     t1.join()
     t2.join()
+    face=gesture=None
     try:
         face=return_dict['face'];gesture=return_dict['gesture']
     except KeyError:
         print(f"face not detected:{'face' not in return_dict.keys()}")
         print(f"gesture not detected: {'gesture' not in return_dict.keys()}")
     return face,gesture
+    
 def offlineDetect(frame):
     # To be implemented
     raise NotImplementedError('别骂了，我们没时间训模型')
@@ -55,31 +57,14 @@ def process_image(frame,index=None,copy_to_clipboard=False,show_img=False,dynam_
         for file in json_files:
             os.remove(os.path.join(json_path,file))
 
-#debug resize function 
-    # print(f"Image shape before resizing:{frame.shape}")
-    for index,dim in enumerate(frame.shape[:2]):
-        if dim>1280:
-            shape=[0,0]
-            #OpenCV resizes image as shape=(width,height)!!!
-            #So I switched the indices in shape[]
-            shape[1-index]=1280 
-            shape[index]=frame.shape[1-index]
-            frame=cv2.resize(frame,dsize=tuple(shape))
-        if dim<300:
-            shape=[0,0]
-            shape[1-index]=300
-            shape[index]=frame.shape[1-index]
-            frame=cv2.resize(frame,dsize=tuple(shape)) 
-#debug resize
-    # print(f"Image shape before resizing:{frame.shape}")
-
-    cv2.imwrite('frame.jpg',frame)
+    frame=resize_dim_inrange(frame)
+    cv2.imwrite('frame.bmp',frame)
     face_dict,gesture_dict=onlineDetect(frame)
-    os.remove('frame.jpg')    
+    os.remove('frame.bmp')    
     handle_result(frame,face_dict,gesture_dict,show_img=show_img,result_index=1)
     #Use the same image name in processing
     if copy_to_clipboard:
-        path=f'Emotion_eye/{index}.jpg'
+        path=f'Emotion_eye/{index}.bmp'
         image=Image.open(path)
         output = BytesIO()
         image.convert('RGB').save(output, 'BMP')
@@ -91,7 +76,7 @@ def process_image(frame,index=None,copy_to_clipboard=False,show_img=False,dynam_
         win32clipboard.CloseClipboard()
         print("successfully copied to clipboard")
     if dynam_wallpaper:
-        path=f'Emotion_eye/{index}.jpg'
+        path=f'Emotion_eye/{index}.bmp'
         image=Image.open(path)
         show_wallpaper()
 
@@ -131,9 +116,10 @@ def process_video(path=None,dynam_wallpaper=False,show_img=False):
             time.sleep(0.3)
             if args.approach == 'Online_request':
                 t1=time.time()
-                cv2.imwrite('frame.jpg',img=frame)
+                frame=resize_dim_inrange(frame)
+                cv2.imwrite('frame.bmp',img=frame)           
                 face_dict,gesture_dict=onlineDetect(frame)
-                os.remove('frame.jpg')       
+                os.remove('frame.bmp')       
                 handle_result(frame,face_dict,gesture_dict,result_index,show_img)
                 result_index+=1
                 print("time used :",time.time()-t1)

@@ -27,7 +27,7 @@ def send_request(url, key, secret, frame,params,return_dict=None):
     # The server only accepts bytes!!!!!
     #To do: Find a method to align the format of np-array image and with that of the binary image read from open().
     #frame.to_bytes() does not work!
-    fr = open('frame.jpg', 'rb')
+    fr = open('frame.bmp', 'rb')
     data.append(fr.read())
     fr.close()
     # Optional params
@@ -166,8 +166,24 @@ def handle_result(frame,face_data,gesture_data,result_index=None,show_img=False)
 
     #To do: call jar file and pass data as parameter
 
-
-
+def resize_dim_inrange(frame):
+    """
+    Ensure that 300<dim<4096, as specified by Face++ API
+    """
+    for index,dim in enumerate(frame.shape[:2]):
+        if dim>4096:
+            shape=[0,0]
+            #OpenCV resizes image as shape=(width,height)!!!
+            #So I switched the indices in shape[]
+            shape[1-index]=4096 
+            shape[index]=frame.shape[1-index]
+            frame=cv2.resize(frame,dsize=tuple(shape))
+        if dim<300:
+            shape=[0,0]
+            shape[1-index]=300
+            shape[index]=frame.shape[1-index]
+            frame=cv2.resize(frame,dsize=tuple(shape)) 
+    return frame
 def show_wallpaper():
     
     pass
