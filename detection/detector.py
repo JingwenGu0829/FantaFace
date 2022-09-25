@@ -1,14 +1,13 @@
-import json
-import os
-from utils import send_request,handle_result,show_wallpaper,resize_dim_inrange
-import cv2,queue
+import os,sys
+sys.path.append(os.path.join(os.getcwd(),"detection"))
+from utils import send_request,handle_result,set_wallpaper,resize_dim_inrange
+import cv2
 from io import BytesIO
 from PIL import Image
 from option import args 
 import os
 import time,threading
-from multiprocessing import Process
-import win32clipboard,win32api,win32con
+import win32clipboard
 def onlineDetect(frame):
     """
     @ param test_with_img: Image file path. If not empty, this method will will only detect this image instead of frame.
@@ -61,7 +60,7 @@ def process_image(frame,index=None,copy_to_clipboard=False,show_img=False,dynam_
     cv2.imwrite('frame.bmp',frame)
     face_dict,gesture_dict=onlineDetect(frame)
     os.remove('frame.bmp')    
-    handle_result(frame,face_dict,gesture_dict,show_img=show_img,result_index=1)
+    handle_result(frame,face_dict,gesture_dict,show_img=show_img)
     #Use the same image name in processing
     if copy_to_clipboard:
         path=f'Emotion_eye/{index}.bmp'
@@ -78,7 +77,7 @@ def process_image(frame,index=None,copy_to_clipboard=False,show_img=False,dynam_
     if dynam_wallpaper:
         path=f'Emotion_eye/{index}.bmp'
         image=Image.open(path)
-        show_wallpaper()
+        set_wallpaper(f'Emotion_eye/{index}.bmp')
 
 
 def process_video(path=None,dynam_wallpaper=False,show_img=False):   
@@ -148,7 +147,7 @@ def process_video(path=None,dynam_wallpaper=False,show_img=False):
 if __name__ == '__main__':
     # print(os.getcwd())
     # process_video(show_img=True)
-    process_image(cv2.imread("detection-generator/test.jpg"),show_img=True)
+    process_image(cv2.imread("detection/test.jpg"),show_img=True,copy_to_clipboard=True)
 
     # # # test latency
     # # total_time=0
@@ -156,7 +155,7 @@ if __name__ == '__main__':
     # # retry=10
     # # for i in range(iters):
     # #     t1=time.time()
-    # #     process_image(cv2.imread('detection-generator/test.jpg'),copy_to_clipboard=False,show_img=True)
+    # #     process_image(cv2.imread('detection/test.jpg'),copy_to_clipboard=False,show_img=True)
     # #     time_used=time.time()-t1
     # #     print("time_used:",time_used)
     # #     total_time+=time_used
