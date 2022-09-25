@@ -4,11 +4,11 @@
 **This is an app for generating cartoons from recognized human facial features and gestures. The created cartoon accurately reflects your emotion, expression and motion and can be set as a real-time interative wallpaper or copied to pasteboard and sent to your friend on social media(like emoji) for fun:)**
 ## TODO List
 ```
--Add gesture cartoon
--Add mouth and eyebrow cartoon
+-Add gesture movement cartoon
+-Add mouth and eyebrow movement cartoon
 -Use GAN to transfer the style of the image
-
 ```
 
+- Detection demo:
 
 ## Please star this repo if you ever visit it. Much appreciated.
